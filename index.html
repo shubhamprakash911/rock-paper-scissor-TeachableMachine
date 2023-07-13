@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+      }
+
+      /* Button Styles */
+      .button,
+      .play,
+      .reset {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        background-color: #4caf50; /* Green */
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 2%;
+      }
+
+      .reset {
+        background-color: black;
+      }
+
+      /* .reset {
+        color: #4caf50;
+      } */
+
+      .button:hover {
+        background-color: #45a049; /* Darker green */
+      }
+
+      .button:active {
+        background-color: #3e8e41; /* Even darker green */
+      }
+
+      .container2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30%;
+      }
+      .container2 > div {
+        margin-left: 30%;
+      }
+
+      #label-container > div {
+        padding: 4px 8px;
+        text-align: center;
+        background-color: #70e250; /* Green */
+        color: white;
+        font-size: large;
+        width: 185px;
+        margin-bottom: 3px;
+      }
+
+      .play,
+      .reset {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Rock-Paper-Scissor Game</h2>
+      <div>
+        <button class="button" type="button" onclick="init()">
+          Enable Webcam
+        </button>
+
+        <button class="play">Play</button>
+        <button class="reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="container2">
+      <div>
+        <h2>👤 Human score: <span class="humanScore">0</span> pts</h2>
+        <div id="humanChoose"></div>
+        <div id="webcam-container"></div>
+        <div id="label-container"></div>
+      </div>
+      <div>
+        <h2>🤖 Robot score: <span class="computerScore">0</span> pts</h2>
+        <div class="robot"><img src="/robot.svg" /></div>
+        <div id="robotChoice"></div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+      // the link to your model provided by Teachable Machine export panel
+      // const URL = "https://teachablemachine.withgoogle.com/models/PCP2kSQkc/";
+      const URL = "https://teachablemachine.withgoogle.com/models/l02IbpV7q/";
+
+      let model, webcam, labelContainer, maxPredictions;
+
+      // Load the image model and setup the webcam
+      async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        // Convenience function to setup a webcam
+        const flip = true; // whether to flip the webcam
+        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) {
+          // and class labels
+          labelContainer.appendChild(document.createElement("div"));
+        }
+
+        // play and reset button enable
+        let btn = document.querySelector(".button");
+        btn.style.display = "none";
+        document.querySelector(".play").style.display = "inline";
+        document.querySelector(".reset").style.display = "inline";
+      }
+
+      async function loop() {
+        webcam.update(); // update the webcam frame
+        await predict();
+        window.requestAnimationFrame(loop);
+      }
+
+      // run the webcam image through the image model
+      async function predict() {
+        // predict can take in an image, video or canvas html element
+
+        let sign = "";
+        const prediction = await model.predict(webcam.canvas);
+        for (let i = 0; i < maxPredictions; i++) {
+          if (prediction[i].className == 0) {
+            sign = "👊";
+          } else if (prediction[i].className == 1) {
+            sign = "🤚";
+          } else if (prediction[i].className == 2) {
+            sign = "✌️";
+          } else {
+            sign = "none";
+          }
+
+          if (prediction[i].probability.toFixed(2) > 0.8) {
+            document.querySelector("#humanChoose").textContent =
+              prediction[i].className;
+          }
+
+          const classPrediction =
+            sign + ": " + prediction[i].probability.toFixed(2);
+          labelContainer.childNodes[i].innerHTML = classPrediction;
+
+          console.log(prediction[i].className);
+          // return prediction[i].className;
+        }
+      }
+
+      //play game
+      document.querySelector(".play").addEventListener("click", () => {
+        alert("click on play btn");
+        computerPlay();
+      });
+
+      // stop webcam
+      document.querySelector(".stop").addEventListener("click", () => {
+        webcam.stop();
+      });
+
+      //check winner
+      let humanScore = document.querySelector(".humanScore").textContent;
+      let computerScore = document.querySelector(".computerScore").textContent;
+      function checkWinner(computerChoice) {
+        let humanChoose = document.querySelector("#humanChoose").textContent;
+        alert(humanChoose);
+        alert("compuerchoose", computerChoice);
+        if (computerChoice == 0 && humanChoose == 1) {
+          humanScore += 10;
+        } else if (computerChoice == 0 && humanChoose == 2) {
+          computerScore += 10;
+        } else if (computerChoice == 1 && humanChoose == 2) {
+          humanChoose += 10;
+        } else if (computerChoice == 1 && humanChoose == 0) {
+          computerScore += 10;
+        } else if (computerChoice == 2 && humanChoose == 0) {
+          humanChoose += 10;
+        } else if (computerChoice == 2 && humanChoose == 1) {
+          computerScore += 10;
+        }
+      }
+
+      function computerPlay() {
+        setTimeout(() => {
+          const choices = [0, 1, 2];
+          const randomIndex = Math.floor(Math.random() * choices.length);
+          checkWinner(choices[randomIndex]);
+        }, 20000);
+      }
+    </script>
+  </body>
+</html>
