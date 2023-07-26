@@ -3,76 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      .container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin: auto;
-      }
-
-      /* Button Styles */
-      .button,
-      .play,
-      .reset {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        text-align: center;
-        text-decoration: none;
-        background-color: #4caf50; /* Green */
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        margin-bottom: 2%;
-      }
-
-      .reset {
-        background-color: black;
-      }
-
-      /* .reset {
-        color: #4caf50;
-      } */
-
-      .button:hover {
-        background-color: #45a049; /* Darker green */
-      }
-
-      .button:active {
-        background-color: #3e8e41; /* Even darker green */
-      }
-
-      .container2 {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30%;
-      }
-      .container2 > div {
-        margin-left: 30%;
-      }
-
-      #label-container > div {
-        padding: 4px 8px;
-        text-align: center;
-        background-color: #70e250; /* Green */
-        color: white;
-        font-size: large;
-        width: 185px;
-        margin-bottom: 3px;
-      }
-
-      .play,
-      .reset {
-        display: none;
-      }
-    </style>
+    <title>Rock-Paper-Scissor</title>
   </head>
+  <link rel="stylesheet" href="/static//style.css" />
   <body>
+    <!-- audio file -->
+    <audio id="audioEffect1">
+      <source src="./static/win.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="audioEffect2">
+      <source src="./static/lose.mp3" type="audio/mpeg" />
+    </audio>
+    <!-- audio file end -->
+
+    <!-- game output conatainer -->
     <div class="container">
       <h2>Rock-Paper-Scissor Game</h2>
       <div>
@@ -94,10 +38,12 @@
       </div>
       <div>
         <h2>🤖 Robot score: <span class="computerScore">0</span> pts</h2>
-        <div class="robot"><img src="/robot.svg" /></div>
+        <div class="robot"><img src="/static/robot.svg" /></div>
         <div id="robotChoice"></div>
       </div>
     </div>
+    <!-- game output container end -->
+
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script type="text/javascript">
@@ -173,46 +119,54 @@
           // return prediction[i].className;
         }
       }
+      // google teachable machine code end
+
+      //check winner
+      let sound1 = document.getElementById("audioEffect1");
+      let sound2 = document.getElementById("audioEffect2");
+
+      let humanScore = document.querySelector(".humanScore");
+      let computerScore = document.querySelector(".computerScore");
+      function checkWinner(computerChoice) {
+        let humanChoose = document.querySelector("#humanChoose").textContent;
+        if (computerChoice == 0 && humanChoose == 1) {
+          humanScore.textContent = +humanScore.textContent + 10;
+          sound1.play();
+        } else if (computerChoice == 0 && humanChoose == 2) {
+          computerScore.textContent = +computerScore.textContent + 10;
+          sound2.play();
+        } else if (computerChoice == 1 && humanChoose == 2) {
+          humanScore.textContent = +humanScore.textContent + 10;
+          sound1.play();
+        } else if (computerChoice == 1 && humanChoose == 0) {
+          computerScore.textContent = +computerScore.textContent + 10;
+          sound2.play();
+        } else if (computerChoice == 2 && humanChoose == 0) {
+          humanScore.textContent = +humanScore.textContent + 10;
+          sound1.play();
+        } else if (computerChoice == 2 && humanChoose == 1) {
+          computerScore.textContent = +computerScore.textContent + 10;
+          sound2.play();
+        }
+      }
 
       //play game
       document.querySelector(".play").addEventListener("click", () => {
-        alert("click on play btn");
         computerPlay();
       });
 
-      // stop webcam
-      document.querySelector(".stop").addEventListener("click", () => {
-        webcam.stop();
+      // reset btn
+      document.querySelector(".reset").addEventListener("click", () => {
+        humanScore.textContent = 0;
+        computerScore.textContent = 0;
       });
-
-      //check winner
-      let humanScore = document.querySelector(".humanScore").textContent;
-      let computerScore = document.querySelector(".computerScore").textContent;
-      function checkWinner(computerChoice) {
-        let humanChoose = document.querySelector("#humanChoose").textContent;
-        alert(humanChoose);
-        alert("compuerchoose", computerChoice);
-        if (computerChoice == 0 && humanChoose == 1) {
-          humanScore += 10;
-        } else if (computerChoice == 0 && humanChoose == 2) {
-          computerScore += 10;
-        } else if (computerChoice == 1 && humanChoose == 2) {
-          humanChoose += 10;
-        } else if (computerChoice == 1 && humanChoose == 0) {
-          computerScore += 10;
-        } else if (computerChoice == 2 && humanChoose == 0) {
-          humanChoose += 10;
-        } else if (computerChoice == 2 && humanChoose == 1) {
-          computerScore += 10;
-        }
-      }
 
       function computerPlay() {
         setTimeout(() => {
           const choices = [0, 1, 2];
-          const randomIndex = Math.floor(Math.random() * choices.length);
+          let randomIndex = Math.floor(Math.random() * choices.length);
           checkWinner(choices[randomIndex]);
-        }, 20000);
+        }, 2000);
       }
     </script>
   </body>
